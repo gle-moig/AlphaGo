@@ -50,6 +50,7 @@ class MctsTree:
         :param board:
         :return:
         """
+        # todo there are errors often idk why
         current_node = self.root
         while len(current_node.children) > 0:
             current_node = sorted(self.root.children, key=lambda n: n.q + n.u, reverse=True)[0]
@@ -68,7 +69,9 @@ class MctsTree:
                 current_ancestor.n += 1
             board.pop()
         # reset the board
-        # todo pop as much as number of pushes
+        while current_node.parent is not None:
+            current_node = current_node.parent
+            board.pop()
 
     def get_moves_value(self, tau):
         """
