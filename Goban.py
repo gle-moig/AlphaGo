@@ -150,7 +150,7 @@ class Board:
 
       self._seenHashes = set()
 
-      self._historyMoveNames = []
+      self.historyMoveNames = []  # had to make it public
       self._trailMoves = []  # data structure used to push/pop the moves
 
       #Building fast structures for accessing neighborhood
@@ -246,7 +246,7 @@ class Board:
         if fcoord != -1:  # pass otherwise
             alreadySeen, tmpHash = self._is_super_ko(fcoord, self._nextPlayer)
             if alreadySeen:
-                self._historyMoveNames.append(self.flat_to_name(fcoord))
+                self.historyMoveNames.append(self.flat_to_name(fcoord))
                 return False
             captured = self._put_stone(fcoord, self._nextPlayer)
 
@@ -268,7 +268,7 @@ class Board:
             self._currentHash ^= self._passHash
 
         self._seenHashes.add(self._currentHash)
-        self._historyMoveNames.append(self.flat_to_name(fcoord))
+        self.historyMoveNames.append(self.flat_to_name(fcoord))
         self._nextPlayer = Board.flip(self._nextPlayer)
         return True
 
@@ -377,7 +377,7 @@ class Board:
         self._capturedWHITE = oldStatus.pop()
         self._nbBLACK = oldStatus.pop()
         self._nbWHITE = oldStatus.pop()
-        self._historyMoveNames.pop()
+        self.historyMoveNames.pop()
 
     def _getPositionHash(self, fcoord, color):
         return self._positionHashes[fcoord][color-1]

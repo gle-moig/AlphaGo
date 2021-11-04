@@ -6,7 +6,7 @@ import Goban
 from playerInterface import *
 
 import numpy as np
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
 class myPlayer(PlayerInterface):
     ''' Example of a random player for the go. The only tricky part is to be able to handle
@@ -48,8 +48,8 @@ class myPlayer(PlayerInterface):
         probabilities /= np.sum(probabilities)
 
         # We plot them
-        go_plot.plot_play_probabilities(self._board, probabilities)
-        plt.show()
+        # go_plot.plot_play_probabilities(self._board, probabilities)
+        # plt.show()
 
 
         move = np.random.choice(range(82), p=probabilities)

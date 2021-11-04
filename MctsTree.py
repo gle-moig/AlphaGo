@@ -1,21 +1,22 @@
-from random import choice
-from functools import reduce
+from numpy.random import choice
 
 C_PUCT = 1
 
 
-def rollout(board):
-    i = 0
-    while not board.is_game_over():
-        board.push(choice(board.legal_moves()))
-        i += 1
-    for _ in range(i):
-        board.pop()
-    return (i + 1) % 2
+def rollout(game, depth=-1):
+    player = game.player
+    while not (game.is_over or depth == 0):
+        game.play(choice(game.legal_moves))
+        if depth > 0:
+            depth -= 1
+    while not game.is_over:
+        game.play(-1)
+    result = int(game.get_score() < 0)
+    return 1 if result == player else 0
 
 
 class Node:
-    def __init__(self, move=None, parent=None):
+    def __init__(self, move, parent=None):
         self.move = move
         self.children = []
         self.parent = parent
@@ -25,6 +26,9 @@ class Node:
 
     @property
     def q(self):
+        """
+        Mean action value
+        """
         assert self.w <= self.n
         if self.n == 0:
             return 1
@@ -38,34 +42,42 @@ class Node:
     @property
     def favorite_child(self):
         assert len(self.children) > 0
-        return reduce(
-            lambda child0, child1: child0 if child0.q + child0.u >= child1.q + child1.u else child1,
-            self.children)
+        return max(self.children, key=lambda child: child.q + child.u)
 
 
 class MctsTree:
     def __init__(self):
-        self.root = Node()
+        self.root = Node(None)
 
-    def grow(self, board):
+    def grow(self, game):
         """
         Does a step of MCTS
 
         Select best leaf then create its children based on possibles moves.
         For each child created, does a rollout and update every ancestors with the outcome
 
-        :param board:
+        :param game:
         :return:
         """
         current_node = self.root
         while len(current_node.children) > 0:
             current_node = current_node.favorite_child
-            board.push(current_node.move)
-        for move in board.legal_moves():
+            game.play(current_node.move)
+        # remove dumb moves
+        moves = []
+        for move in game.legal_moves:
+            if move != -1 and \
+                all([game.state.board[j] == game.player and
+                    game.state.chain_liberties(j, game.player, break_value=2) >= 2
+                    for j in game.state.get_neighbors(move)]):
+                continue
+            moves.append(move)
+        for move in moves:
             current_node.children.append(Node(move=move, parent=current_node))
         for child in current_node.children:
-            board.push(child.move)
-            w = rollout(board)
+            child_game = game.copy()
+            child_game.play(child.move)
+            w = rollout(child_game, depth=10)
             current_ancestor = child
             current_ancestor.w += w
             current_ancestor.n += 1
@@ -73,11 +85,6 @@ class MctsTree:
                 current_ancestor = current_ancestor.parent
                 current_ancestor.w += w
                 current_ancestor.n += 1
-            board.pop()
-        # reset the board
-        while current_node.parent is not None:
-            current_node = current_node.parent
-            board.pop()
 
     def get_moves_value(self, tau):
         """
@@ -86,5 +93,11 @@ class MctsTree:
         :param tau: temperature
         :return moves_value: dict with move:value
         """
+        if tau == 0:
+            return {self.root.favorite_child.move: 1}
         denominator = sum([child.n ** (1 / tau) for child in self.root.children])
         return {child.move: child.n ** (1 / tau) / denominator for child in self.root.children}
+
+    def get_move(self, tau):
+        moves, probabilities = zip(*self.get_moves_value(tau).items())
+        return choice(moves, p=probabilities)

@@ -1,16 +1,43 @@
-# This is a sample Python script.
+#!python3.8
 
-# Press Maj+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+import sys
+import importlib
+import time
 
-
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+import GoFast
 
 
-# Press the green button in the gutter to run the script.
+def main(*argv):
+    argv_are_valid = len(argv) == 3 and\
+        len(argv[1]) > 3 and argv[1][-3:] == ".py" and\
+        len(argv[2]) > 3 and argv[2][-3:] == ".py"
+    if not argv_are_valid:
+        print("""
+Error: wrong arguments
+
+Please launch game with command:
+```python main.py black_player.py white_player.py```
+    
+""", file=sys.stderr)
+        return 1
+    get_black_move = getattr(importlib.import_module(argv[1][:-3]), "get_move")
+    get_white_move = getattr(importlib.import_module(argv[2][:-3]), "get_move")
+    game = GoFast.Game(9)
+    print(game)
+    while not game.is_over:
+        t0 = time.time()
+        if game.player_color == "black":
+            move = get_black_move(game.copy())
+        elif game.player_color == "white":
+            move = get_white_move(game.copy())
+        else:
+            raise Exception("Unknown Color")
+        t1 = time.time()
+        game.play(move)
+        t2 = time.time()
+        print(game)
+        print(f"processing time: {t1 - t0}; play time: {t2 - t1}")
+
+
 if __name__ == '__main__':
-    print_hi('PyCharm')
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+    main(*sys.argv)
