@@ -1,5 +1,4 @@
 from random import choice
-from functools import reduce
 
 C_PUCT = 1
 
@@ -38,9 +37,7 @@ class Node:
     @property
     def favorite_child(self):
         assert len(self.children) > 0
-        return reduce(
-            lambda child0, child1: child0 if child0.q + child0.u >= child1.q + child1.u else child1,
-            self.children)
+        return max(self.children, key=lambda _child: _child.q + _child.u)
 
 
 class MctsTree:
