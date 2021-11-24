@@ -50,10 +50,9 @@ class MctsTree:
         :param board:
         :return:
         """
-        # todo there are errors often idk why
         current_node = self.root
         while len(current_node.children) > 0:
-            current_node = sorted(self.root.children, key=lambda n: n.q + n.u, reverse=True)[0]
+            current_node = max(current_node.children, key=lambda _child: _child.q + _child.u)
             board.push(current_node.move)
         for move in board.legal_moves():
             current_node.children.append(Node(move=move, parent=current_node))
