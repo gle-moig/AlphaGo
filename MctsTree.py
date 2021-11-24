@@ -1,17 +1,17 @@
-from random import sample
-
+from random import choice
+from functools import reduce
 
 C_PUCT = 1
 
 
-def rollout(board, player=1):
-    if board.is_game_over():
-        return player
-    move = sample(board.legal_moves(), 1)[0]
-    board.push(move)
-    res = rollout(board, not player)
-    board.pop()
-    return res
+def rollout(board):
+    i = 0
+    while not board.is_game_over():
+        board.push(choice(board.legal_moves()))
+        i += 1
+    for _ in range(i):
+        board.pop()
+    return (i + 1) % 2
 
 
 class Node:
@@ -32,8 +32,15 @@ class Node:
 
     @property
     def u(self):
-        assert self.parent != None
+        assert self.parent is not None
         return C_PUCT * self.p * self.parent.n ** 0.5 / (1 + self.n)
+
+    @property
+    def favorite_child(self):
+        assert len(self.children) > 0
+        return reduce(
+            lambda child0, child1: child0 if child0.q + child0.u >= child1.q + child1.u else child1,
+            self.children)
 
 
 class MctsTree:
@@ -52,7 +59,7 @@ class MctsTree:
         """
         current_node = self.root
         while len(current_node.children) > 0:
-            current_node = max(current_node.children, key=lambda _child: _child.q + _child.u)
+            current_node = current_node.favorite_child
             board.push(current_node.move)
         for move in board.legal_moves():
             current_node.children.append(Node(move=move, parent=current_node))

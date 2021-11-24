@@ -23,7 +23,7 @@ class myPlayer(PlayerInterface):
             return "PASS"
         tree = MctsTree()
         # todo: loop based on time
-        for _ in range(5):
+        for _ in range(1):
             tree.grow(board=self._board)
         # compute probabilities
         probabilities = np.zeros(82)
