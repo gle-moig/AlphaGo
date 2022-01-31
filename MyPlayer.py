@@ -1,21 +1,19 @@
 """
-Aliases to allow me to code properly
+Alias for a player
 
 """
-import numpy as np
 
 from playerInterface import *
-from players import *
 from Board import *
+from mcts_players import RolloutPlayer, NetworkPlayer
 
-PLAYER = MctsRlPlayer
 
 class myPlayer(PlayerInterface):
-    """Alias to fulfill bad code restrictions"""
+    """Alias to make my IDE at peace"""
 
     def __init__(self):
-        self.player = object.__new__(PLAYER)
-        self.board = Board()
+        self.board = None
+        self.player = NetworkPlayer(turn_time=4)
 
     def getPlayerName(self):
         return self.player.name
@@ -34,7 +32,8 @@ class myPlayer(PlayerInterface):
         self.board.play(move)
 
     def newGame(self, color):
-        self.player.__init__(color)
+        self.board = Board(x=True)
+        self.player.new_game(color)
 
     def endGame(self, color):
-        self.player.on_end(color == self.player.color)
+        self.player.on_end(self.board, color - 1)

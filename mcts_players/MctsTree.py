@@ -1,9 +1,9 @@
 import numpy as np
 
+from Constants import C_PUCT
+
 
 class Node:
-    C_PUCT = 1
-
     def __init__(self, move=None, parent=None, p=1):
         self.move = move
         self.children = []
@@ -22,7 +22,7 @@ class Node:
     @property
     def u(self):
         assert self.parent is not None
-        return self.C_PUCT * self.p * self.parent.n ** 0.5 / (1 + self.n)
+        return C_PUCT * self.p * self.parent.n ** 0.5 / (1 + self.n)
 
     @property
     def favorite_child(self):
@@ -30,38 +30,22 @@ class Node:
         return max(self.children, key=lambda _child: _child.q + _child.u)
 
 
-class MctsRlTree:
+class MctsTree:
     def __init__(self):
         self.root = Node()
 
-    def grow(self, board, model):
+    def grow(self, board, func):
         """
         Does a step of MCTS
 
         Select best leaf then create its children based on possibles moves.
-        For each child created, does a rollout and update every ancestors with the outcome
+        For each child created, evaluate it and update every ancestors with the outcome
 
         :param board:
-        :param model:
+        :param func:
         :return:
         """
-        current_node = self.root
-        while len(current_node.children) > 0:
-            current_node = current_node.favorite_child
-            board.play(current_node.move)
-        inputs = model.format_input(board)
-        pred_value, pred_p = model(inputs)
-        moves = board.get_moves()
-        for move in moves:
-            current_node.children.append(Node(move=move, parent=current_node, p=pred_p[move]))
-        current_node.w += pred_value
-        current_node.n += 1
-        while current_node.parent is not None:
-            current_node = current_node.parent
-            current_node.w += pred_value
-            current_node.n += 1
-            # reset the board
-            board.undo()
+        raise NotImplementedError
 
     def get_p(self, size, tau):
         """

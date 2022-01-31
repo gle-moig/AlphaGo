@@ -1,0 +1,13 @@
+import numpy as np
+
+MOVES = [
+    f"{row}{col}"
+    for row in ["A", "B", "C", "D", "E", "F", "G", "H", "I"]
+    for col in ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
+] + ["PASS"]
+
+P = np.eye(len(MOVES))
+
+C_PUCT = 1
+
+__all__ = [MOVES, P, C_PUCT]

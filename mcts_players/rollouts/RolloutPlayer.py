@@ -1,10 +1,12 @@
-from random import choice, shuffle
+import sys
+import time
+from random import shuffle
 import numpy as np
 
-from MctsTree import MctsTree
+from RolloutTree import RolloutTree
 
 
-class MctsRolloutPlayer:
+class RolloutPlayer:
     """ doc to do"""
 
     @staticmethod
@@ -22,8 +24,9 @@ class MctsRolloutPlayer:
             board.undo()
         return (i + 1) % 2
 
-    def __init__(self, color):
-        self._color = color
+    def __init__(self, turn_time=20):
+        self._color = None
+        self.turn_time = turn_time
 
     @property
     def color(self):
@@ -33,13 +36,19 @@ class MctsRolloutPlayer:
     def name(self):
         return "Joueur MCTS avec rollouts"
 
+    def new_game(self, color):
+        self._color = color
+
     def get_next_move(self, board):
         if board.is_over:
             return 81  # pass move
-        tree = MctsTree()
-        # todo: loop based on time
-        for _ in range(2):
+        tree = RolloutTree()
+        t = time.time()
+        i = 0
+        while time.time() - t < self.turn_time:
             tree.grow(board=board, rollout=self.rollout)
+            i += 1
+        print(f"Tree grown {i} times", file=sys.stderr)
         s, _ = board.shape
         # compute probabilities
         p = tree.get_p(size=1 + s ** 2, tau=2)
@@ -47,8 +56,5 @@ class MctsRolloutPlayer:
         move = np.random.choice(range(82), p=p)
         return move
 
-    def on_end(self, is_winner):
-        if is_winner:
-            print("I won!!!")
-        else:
-            print("I lost :(!!")
+    def on_end(self, board, winner):
+        pass
